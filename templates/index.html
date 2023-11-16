@@ -1,0 +1,147 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI-Native Markup Language</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #container {
+        display: flex;
+        position: relative;
+      }
+      #editor,
+      #preview {
+        width: 50%;
+        padding: 10px;
+      }
+      textarea {
+        width: calc(100% - 20px);
+        height: 80vh;
+      }
+      #preview {
+        background: #f0f0f0;
+        white-space: pre-wrap;
+      }
+      header {
+        text-align: center;
+        padding: 20px;
+      }
+      footer {
+        text-align: center;
+        padding: 10px;
+      }
+      .popover {
+        display: none; /* Initially hidden */
+        position: absolute;
+        right: 1em;
+        top: 1em;
+        width: auto;
+        border: 1px solid #ccc;
+        padding: 1em;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+      .popover.active {
+        display: block; /* Show when active */
+      }
+      .popover ul {
+        list-style: none;
+      }
+      .syntax-guide-btn {
+        position: fixed;
+        right: 1em;
+        bottom: 1em;
+        padding: 0.5em 1em;
+        background: #904c77;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        z-index: 1100;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Experiment: AI-Native Markup Language</h1>
+    </header>
+    <button class="syntax-guide-btn" id="syntaxGuideBtn">
+        Syntax Guide
+      </button>
+
+    <aside class="popover" id="syntaxPopover">
+      <h3>Syntax Guide</h3>
+      <p> <strong>Beginning of Line Commands</strong></p>
+      <ul>
+        <li><code>$</code> - Generic prompt to the AI.</li>
+        <li><code>//</code> - Comment, will not be rendered.</li>
+        <li><code>&#123;&#123;language_code&#125;&#125; </code> - Translate to the specified language.</li>
+      </ul>
+      <p> <strong> End of Line Commands</strong></p>
+      <ul>
+        <li><code>>></code> - Continue the preceding text.</li>
+        <li><code>##</code> - Summarize the preceding text.</li>
+      </ul>
+    </aside>
+    <div id="container">
+      <textarea id="editor"></textarea>
+      <div id="preview"></div>
+    </div>
+    <footer>
+      Created by
+      <a href="https://twitter.com/eimenhmdt" target="_blank">@eimenhmdt</a>
+    </footer>
+    <script>
+      // Add a debounce function
+      function debounce(func, wait, immediate) {
+        var timeout;
+        return function () {
+          var context = this,
+            args = arguments;
+          var later = function () {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+          };
+          var callNow = immediate && !timeout;
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+          if (callNow) func.apply(context, args);
+        };
+      }
+
+      // Debounced function for processing input
+      var processInput = debounce(function () {
+        const text = document.getElementById("editor").value;
+        fetch("/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("preview").innerHTML = data;
+          });
+      }, 1500); // 1500 milliseconds
+
+      document.getElementById("editor").addEventListener("input", processInput);
+
+   // Ensure DOM content is fully loaded before running script
+   document.addEventListener('DOMContentLoaded', (event) => {
+    // Function to toggle the visibility of the popover
+    function toggleSyntaxGuidePopover() {
+      console.log("Toggle popover called."); // Debugging line to ensure function is called
+      var popover = document.getElementById("syntaxPopover");
+      console.log(popover); // Should log the popover element
+      popover.classList.toggle("active");
+    }
+
+    // Attach the click event listener to the button
+    document.getElementById("syntaxGuideBtn").addEventListener('click', toggleSyntaxGuidePopover);
+  });
+    </script>
+  </body>
+</html>
